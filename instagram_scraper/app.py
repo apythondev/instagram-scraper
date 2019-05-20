@@ -89,7 +89,7 @@ class InstagramScraper(object):
                             media_types=['image', 'video', 'story-image', 'story-video'],
                             tag=False, location=False, search_location=False, comments=False,
                             verbose=0, include_location=False, filter=None, proxies={}, no_check_certificate=False,
-                                                        template='{urlname}')
+                                                        template='{urlname}', shortcode=None)
 
         allowed_attr = list(default_attr.keys())
         default_attr.update(kwargs)
@@ -462,6 +462,9 @@ class InstagramScraper(object):
                 iter = 0
                 for item in tqdm.tqdm(media_generator(value), desc='Searching {0} for posts'.format(value), unit=" media",
                                       disable=self.quiet):
+                    if self.shortcode is not None and self.shortcode != item['shortcode']:
+                        continue
+
                     if ((item['is_video'] is False and 'image' in self.media_types) or \
                                 (item['is_video'] is True and 'video' in self.media_types)
                         ) and self.is_new_media(item):
@@ -788,6 +791,9 @@ class InstagramScraper(object):
         iter = 0
         for item in tqdm.tqdm(self.query_media_gen(user), desc='Searching {0} for posts'.format(username),
                               unit=' media', disable=self.quiet):
+            if self.shortcode is not None and self.shortcode != item['shortcode']:
+                continue
+
             # -Filter command line
             if self.filter:
                 if 'tags' in item:
@@ -1329,6 +1335,7 @@ def main():
                         help='Retry download attempts endlessly when errors are received')
     parser.add_argument('--verbose', '-v', type=int, default=0, help='Logging verbosity level')
     parser.add_argument('--template', '-T', type=str, default='{urlname}', help='Customize filename template')
+    parser.add_argument('--shortcode', default=None, help='Shortcode to filter media')
 
     args = parser.parse_args()
 
